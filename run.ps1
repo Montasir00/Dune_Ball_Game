@@ -1,0 +1,1 @@
+& "C:\Program Files\Java\jdk-23\bin\javac.exe" "--module-path" ".\javafx-sdk-25.0.1\lib" "--add-modules=javafx.controls,javafx.fxml,javafx.graphics,javafx.base" *.java; & "C:\Program Files\Java\jdk-23\bin\java.exe" "--module-path" ".\javafx-sdk-25.0.1\lib" "--add-modules=javafx.controls,javafx.fxml,javafx.graphics,javafx.base" Main

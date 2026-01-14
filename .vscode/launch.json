@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch DuneBallGame (with JavaFX, JDK-23)",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "DuneBallGame_edc06f11",
+            "vmArgs": "--module-path \"${workspaceFolder}/javafx-sdk-25.0.1/lib\" --add-modules=javafx.controls,javafx.fxml,javafx.graphics,javafx.base",
+            "env": {
+                "JAVA_HOME": "C:\\Program Files\\Java\\jdk-23",
+                "PATH": "C:\\Program Files\\Java\\jdk-23\\bin;${env:PATH}"
+            },
+            "console": "integratedTerminal"
+        }
+    ]
+}
