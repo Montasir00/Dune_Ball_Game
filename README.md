@@ -34,8 +34,10 @@ To run the game, open PowerShell in the project directory and execute:
 
 ## Screenshots
 
-*(Add screenshots or a GIF of your gameplay here)*
-<!-- ![Gameplay Screenshot](placeholder.png) -->
+![Gameplay](image/Screenshot%202026-02-21%20144130.png)
+![Gameplay](image/Screenshot%202026-02-21%20144156.png)
+![Gameplay](image/Screenshot%202026-02-21%20144216.png)
+![Gameplay](image/Screenshot%202026-02-21%20144308.png)
 
 ## Architecture & OOP Concepts
 
