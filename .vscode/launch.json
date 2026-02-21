@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "helloworld",
+            "request": "launch",
+            "mainClass": "helloworld",
+            "projectName": "DuneBallGame_edc06f11"
+        },
+        {
+            "type": "java",
             "name": "Launch DuneBallGame (with JavaFX, JDK-23)",
             "request": "launch",
             "mainClass": "Main",

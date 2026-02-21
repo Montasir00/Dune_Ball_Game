@@ -1,21 +1,35 @@
 import javafx.scene.canvas.GraphicsContext;
-
 public abstract class GameObject {
-    protected double x, y;
-    protected double width = 0;
-    protected double height = 0;
+
+    private double x;
+    private double y;
 
     public GameObject(double x, double y) {
         this.x = x;
         this.y = y;
     }
 
-    public GameObject(double x, double y, double width, double height) {
-        this(x, y);
-        this.width = width;
-        this.height = height;
+    public double getX() {
+        return x;
     }
 
-    public abstract void update();
+    public double getY() {
+        return y;
+    }
+
+    protected void setX(double x) {
+        this.x = x;
+    }
+
+    protected void setY(double y) {
+        this.y = y;
+    }
+
+    protected void setPosition(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public abstract void update() throws GameException;
     public abstract void render(GraphicsContext gc);
 }

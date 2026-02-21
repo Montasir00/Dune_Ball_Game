@@ -6,18 +6,19 @@ import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Terrain {
-    private List<Double> xPoints = new ArrayList<>();
-    private List<Double> yPoints = new ArrayList<>();
+public class Terrain extends GameObject {
+    private final List<Double> xPoints = new ArrayList<>();
+    private final List<Double> yPoints = new ArrayList<>();
     private final int segmentLength = 1;
     private final int screenWidth = 800;
     private final int buffer = 200;
 
     public Terrain(double startX, double height) {
+        super(startX, height);
         generateInitial(startX, height);
     }
 
-    private void generateInitial(double startX, double height) {
+     void generateInitial(double startX, double height) {
         for (int i = 0; i < screenWidth + buffer; i++) {
             double x = startX + i * segmentLength;
             double y = getHeightFromFunction(x);
@@ -39,13 +40,29 @@ public class Terrain {
         }
     }
 
-    public double getYAt(double x) {
+    public double getYAt(double x) throws GameException {
+        if (xPoints.isEmpty()) {
+            throw new GameException("Terrain not initialized - no points available");
+        }
+        
         int i = (int) (x - xPoints.get(0));
-        if (i < 0) i = 0;
-        if (i >= yPoints.size()) i = yPoints.size() - 1;
+        
+        if (i < 0) {
+            throw new GameException("Terrain access out of bounds: index " + i + " is negative");
+        }
+        if (i >= yPoints.size()) {
+            throw new GameException("Terrain access out of bounds: index " + i + 
+                                  " exceeds size " + yPoints.size());
+        }
+        
         return yPoints.get(i);
     }
 
+    @Override
+    public void update() throws GameException {
+    }
+
+    @Override
     public void render(GraphicsContext gc) {
         LinearGradient gradient = new LinearGradient(
             0, 0, 0, 1, true, CycleMethod.NO_CYCLE,

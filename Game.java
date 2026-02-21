@@ -4,90 +4,142 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Game {
-    private Ball ball;
-    private Terrain terrain;
-    private List<Obstacle> obstacles;
-    private List<Enemy> enemies;
-    private List<Coin> coins;
-
+    private static final int WORLD_LENGTH = 15000;
+    private final Terrain terrain;
+    private final Ball ball;
+    private final List<GameObject> entities = new ArrayList<>();
+    private final List<Collidable> collidables = new ArrayList<>();
+    private final List<Collectible> collectibles = new ArrayList<>();
+    private final List<PowerUpEffect> powerUpEffects = new ArrayList<>();
     private boolean gameOver = false;
     private int score = 0;
 
     public Game() {
         terrain = new Terrain(0, 600);
-        terrain.extendIfNeeded(3000); // 🆕 Ensure terrain is available for placement
-
+        terrain.extendIfNeeded(WORLD_LENGTH);
         ball = new Ball(100, 100, terrain);
-        obstacles = new ArrayList<>();
-        enemies = new ArrayList<>();
-        coins = new ArrayList<>();
-
-        generateObstacles();
-        generateEnemies();
-        generateCoins();
+        entities.add(ball);
+        generateGameObjects();
     }
 
-    private void generateObstacles() {
-        for (int i = 300; i < 3000; i += 500) {
-            double x = i;
-            double y = terrain.getYAt(x) - 30; // obstacle height
-            obstacles.add(new Obstacle(x, y, 30, 30));
+    private void generateGameObjects() {
+        for (int i = 400; i < WORLD_LENGTH; i += 700) {
+            try {
+                Obstacle o = new Obstacle(i, terrain.getYAt(i) - 40, 30, 30);
+                entities.add(o);
+                collidables.add(o);
+            } catch (GameException e) {
+                System.err.println("Failed to spawn Obstacle at " + i + ": " + e.getMessage());
+            }
         }
-    }
 
-    private void generateEnemies() {
-        enemies.add(new Enemy(600, terrain.getYAt(600) - 30));
-        enemies.add(new Enemy(1200, terrain.getYAt(1200) - 30));
-    }
+        for (int i = 800; i < WORLD_LENGTH; i += 1400) {
+            try {
+                Enemy e = new Enemy(i, terrain.getYAt(i) - 30);
+                entities.add(e);
+                collidables.add(e);
+            } catch (GameException e) {
+                System.err.println("Failed to spawn Enemy at " + i + ": " + e.getMessage());
+            }
+        }
 
-    private void generateCoins() {
-        for (int i = 400; i < 3000; i += 350) {
-            double x = i;
-            double y = terrain.getYAt(x) - 20; // coin radius
-            coins.add(new Coin(x, y));
+        for (int i = 100; i < WORLD_LENGTH; i += 120) {
+            try {
+                Coin c = new Coin(i, terrain.getYAt(i) - 20);
+                entities.add(c);
+                collectibles.add(c);
+                collidables.add(c);
+            } catch (GameException e) {
+                System.err.println("Failed to spawn Coin at " + i + ": " + e.getMessage());
+            }
+        }
+
+        for (int i = 3000; i < WORLD_LENGTH; i += 3500) {
+            try {
+                PowerUp p = new PowerUp(i, terrain.getYAt(i) - 40);
+                entities.add(p);
+                collectibles.add(p);
+                collidables.add(p);
+                powerUpEffects.add(p);
+            } catch (GameException e) {
+                System.err.println("Failed to spawn PowerUp at " + i + ": " + e.getMessage());
+            }
         }
     }
 
     public void update(boolean left, boolean right) {
-        if (gameOver) return;
+        try {
+            if (gameOver) return;
 
-        if (left) {
-            ball.moveLeft();
-        } else if (right) {
-            ball.moveRight();
-        } else {
-            ball.stopHorizontal();
+            if (left) ball.moveLeft();
+            else if (right) ball.moveRight();
+            else ball.stopHorizontal();
+
+            updateEntities();
+            terrain.extendIfNeeded(ball.getX());
+            checkCollisions();
+            updatePowerUpEffects();
+
+            if (ball.getY() > 800) {
+                endGame("You fell off!");
+            }
+        } catch (GameException e) {
+            endGame("Technical error");
         }
+    }
 
-        ball.update();
-        terrain.extendIfNeeded(ball.getX());
+    private void updateEntities() throws GameException {
+        for (GameObject obj : entities) {
+            obj.update();
+        }
+    }
 
-        for (Obstacle o : obstacles) o.update();
-        for (Enemy e : enemies) e.update();
-        for (Coin c : coins) c.update();
+    private void updatePowerUpEffects() {
+        powerUpEffects.removeIf(effect -> {
+            effect.updateEffect(ball);
+            return effect.isExpired();
+        });
+    }
 
-        for (Obstacle o : obstacles) {
-            if (o.collidesWith(ball)) {
-                endGame("💥 Hit obstacle!");
+    private void checkCollisions() {
+        for (Collidable c : collidables) {
+            if (c.collidesWith(ball) && !ball.isInvincible()) {
+                if (c instanceof Enemy || c instanceof Obstacle) {
+                    endGame("Collision with " + c.getClass().getSimpleName());
+                    return;
+                }
             }
         }
 
-        for (Enemy e : enemies) {
-            if (e.collidesWith(ball)) {
-                endGame("👾 Hit enemy!");
+        for (Collectible collectible : collectibles) {
+            if (!collectible.isCollected() && 
+                collectible instanceof Collidable collidable &&
+                collidable.collidesWith(ball)) {
+                
+                collectible.collect();
+                score += (collectible instanceof Coin) ? 10 : 25;
+                
+                if (collectible instanceof PowerUpEffect effect) {
+                    effect.applyEffect(ball);
+                }
             }
         }
+    }
 
-        for (Coin c : coins) {
-            if (!c.isCollected() && c.collidesWith(ball)) {
-                c.collect();
-                score += 10;
-            }
+    public void render(GraphicsContext gc) {
+        double cameraX = Math.max(0, ball.getX() - 300);
+        gc.save();
+        gc.translate(-cameraX, 0);
+
+        terrain.render(gc);
+        for (GameObject obj : entities) {
+            obj.render(gc);
         }
 
-        if (ball.getY() > 800) {
-            endGame("💀 You fell off!");
-        }
+        gc.restore();
+        
+        gc.setFill(Color.BLACK);
+        gc.fillText("Score: " + score, 700, 30);
     }
 
     private void endGame(String message) {
@@ -96,31 +148,15 @@ public class Game {
         System.out.println("Final Score: " + score);
     }
 
-    public void render(GraphicsContext gc) {
-        double cameraX = ball.getX() - 300;
-        if (cameraX < 0) cameraX = 0;
-
-        gc.save();
-        gc.translate(-cameraX, 0);
-
-        terrain.render(gc);
-        for (Obstacle o : obstacles) o.render(gc);
-        for (Enemy e : enemies) e.render(gc);
-        for (Coin c : coins) c.render(gc);
-        ball.render(gc);
-
-        gc.restore();
-
-        // Score (top right)
-        gc.setFill(Color.BLACK);
-        gc.fillText("Score: " + score, 700, 30);
-    }
-
     public void jumpBall(long pressTime) {
         ball.jump(pressTime);
     }
 
     public boolean isGameOver() {
         return gameOver;
+    }
+
+    public Ball getBall() {
+        return ball;
     }
 }

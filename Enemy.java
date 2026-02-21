@@ -1,13 +1,12 @@
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-public class Enemy extends GameObject {
-    private double radius = 15;
-    private double speed = 1.5;
+public class Enemy extends GameObject implements Collidable {
+    private final double radius = 15;
+    private final double speed = 1.5;
+    private final double startX;
+    private final double patrolDistance = 100;
     private boolean movingRight = true;
-
-    private double startX;
-    private double patrolDistance = 100;
 
     public Enemy(double x, double y) {
         super(x, y);
@@ -15,15 +14,15 @@ public class Enemy extends GameObject {
     }
 
     @Override
-    public void update() {
+    public void update() throws GameException {
         if (movingRight) {
-            x += speed;
-            if (x > startX + patrolDistance) {
+            setX(getX() + speed);
+            if (getX() > startX + patrolDistance) {
                 movingRight = false;
             }
         } else {
-            x -= speed;
-            if (x < startX - patrolDistance) {
+            setX(getX() - speed);
+            if (getX() < startX - patrolDistance) {
                 movingRight = true;
             }
         }
@@ -31,14 +30,18 @@ public class Enemy extends GameObject {
 
     @Override
     public void render(GraphicsContext gc) {
+        double cx = getX();
+        double cy = getY();
+
         gc.setFill(Color.PURPLE);
-        gc.fillOval(x - radius, y - radius, radius * 2, radius * 2);
+        gc.fillOval(cx - radius, cy - radius, radius * 2, radius * 2);
     }
 
+    @Override
     public boolean collidesWith(Ball ball) {
-        double dx = ball.getX() - x;
-        double dy = ball.getY() - y;
+        double dx = ball.getX() - getX();
+        double dy = ball.getY() - getY();
         double distance = Math.sqrt(dx * dx + dy * dy);
-        return distance < (radius + 20); // 20 = ball radius
+        return distance < (radius + ball.getRadius());
     }
 }

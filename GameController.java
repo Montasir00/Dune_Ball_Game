@@ -105,7 +105,7 @@ public class GameController {
 
         if (paused) {
             gc.setFill(Color.BLACK);
-            gc.setFont(Font.font("Arial", 36));
+            gc.setFont(Font.font("Arial", 22));
             gc.fillText("PAUSED", 330, 300);
         }
     }

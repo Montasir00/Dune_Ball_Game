@@ -10,7 +10,7 @@ public class Main extends Application {
         controller.initKeyListeners(scene);
 
         primaryStage.setTitle("Dune Ball Game");
-        primaryStage.setScene(scene);
+        primaryStage.setScene(scene); 
         primaryStage.show();
 
         controller.startGameLoop();

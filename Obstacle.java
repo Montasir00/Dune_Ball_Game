@@ -1,8 +1,9 @@
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-public class Obstacle extends GameObject {
-    private double width, height;
+public class Obstacle extends GameObject implements Collidable {
+    private final double width;
+    private final double height;
 
     public Obstacle(double x, double y, double width, double height) {
         super(x, y);
@@ -11,20 +12,32 @@ public class Obstacle extends GameObject {
     }
 
     @Override
-    public void update() {
-        // No movement for now
+    public void update() throws GameException {
     }
 
     @Override
     public void render(GraphicsContext gc) {
+        double ox = getX();
+        double oy = getY();
+
         gc.setFill(Color.DARKRED);
-        gc.fillRoundRect(x, y, width, height, 10, 10);
+        gc.fillRoundRect(ox, oy, width, height, 10, 10);
         gc.setStroke(Color.BLACK);
-        gc.strokeRoundRect(x, y, width, height, 10, 10);
+        gc.strokeRoundRect(ox, oy, width, height, 10, 10);
     }
 
+    @Override
     public boolean collidesWith(Ball ball) {
-        return ball.getX() + 20 > x && ball.getX() - 20 < x + width &&
-               ball.getY() + 20 > y && ball.getY() - 20 < y + height;
+        double bx = ball.getX();
+        double by = ball.getY();
+        double r = ball.getRadius();
+
+        return bx + r > getX() &&
+               bx - r < getX() + width &&
+               by + r > getY() &&
+               by - r < getY() + height;
     }
+
+    public double getWidth() { return width; }
+    public double getHeight() { return height; }
 }

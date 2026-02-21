@@ -5,13 +5,13 @@ import javafx.scene.paint.Stop;
 import javafx.scene.paint.Color;
 
 public class Ball extends GameObject {
-    private double radius = 20;
+    private final double radius = 20;
+    private final Terrain terrain;
     private double dx = 0;
     private double dy = 0;
-    private double gravity = 0.4;
+    private final double gravity = 0.4;
     private boolean onGround = false;
-
-    private Terrain terrain;
+    private boolean invincible = false;
 
     public Ball(double x, double y, Terrain terrain) {
         super(x, y);
@@ -20,7 +20,7 @@ public class Ball extends GameObject {
 
     public void jump(long pressDuration) {
         if (onGround) {
-            double jumpForce = Math.min(pressDuration / 15.0, 12); // stronger but smooth
+            double jumpForce = Math.min(pressDuration / 15.0, 12);
             dy = -jumpForce;
             onGround = false;
         }
@@ -40,17 +40,16 @@ public class Ball extends GameObject {
     }
 
     @Override
-    public void update() {
-        x += dx;
-
+    public void update() throws GameException {
+        setX(getX() + dx);
         dy += gravity;
-        if (dy > 8) dy = 8; // terminal velocity
-        y += dy;
+        if (dy > 8) dy = 8;
+        setY(getY() + dy);
+        terrain.extendIfNeeded(getX());
+        double terrainY = terrain.getYAt(getX());
 
-        terrain.extendIfNeeded(x);
-        double terrainY = terrain.getYAt(x);
-        if (y + radius >= terrainY) {
-            y = terrainY - radius;
+        if (getY() + radius >= terrainY) {
+            setY(terrainY - radius);
             dy = 0;
             onGround = true;
         } else {
@@ -60,20 +59,31 @@ public class Ball extends GameObject {
 
     @Override
     public void render(GraphicsContext gc) {
+        if (invincible) {
+            gc.setStroke(Color.CYAN);
+            gc.setLineWidth(4);
+            gc.strokeOval(getX() - radius - 2, getY() - radius - 2, 
+                         (radius + 2) * 2, (radius + 2) * 2);
+        }
+
         RadialGradient gradient = new RadialGradient(
-            0, 0, x, y, radius, false, CycleMethod.NO_CYCLE,
-            new Stop(0, Color.LIGHTBLUE),
-            new Stop(1, Color.DODGERBLUE)
+                0, 0, getX(), getY(), radius, false, CycleMethod.NO_CYCLE,
+                new Stop(0, Color.LIGHTBLUE),
+                new Stop(1, Color.DODGERBLUE)
         );
         gc.setFill(gradient);
-        gc.fillOval(x - radius, y - radius, radius * 2, radius * 2);
+        gc.fillOval(getX() - radius, getY() - radius, radius * 2, radius * 2);
     }
 
-    public double getX() {
-        return x;
+    public double getRadius() {
+        return radius;
     }
 
-    public double getY() {
-        return y;
+    public void setInvincible(boolean value) {
+        this.invincible = value;
+    }
+
+    public boolean isInvincible() {
+        return invincible;
     }
 }
